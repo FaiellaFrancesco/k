@@ -146,54 +146,77 @@ public class ProdottoDao implements ProdottoDaoInterfaccia{
 
 	@Override
 	public synchronized ArrayList<ProdottoBean> doRetrieveAll(String order) throws SQLException {
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
+	    Connection connection = null;
+	    PreparedStatement preparedStatement = null;
+	    ResultSet rs = null;
 
-		ArrayList<ProdottoBean> products = new ArrayList<ProdottoBean>();
+	    ArrayList<ProdottoBean> products = new ArrayList<ProdottoBean>();
 
-		String selectSQL = "SELECT * FROM " + ProdottoDao.TABLE_NAME;
+	    String selectSQL = "SELECT * FROM " + ProdottoDao.TABLE_NAME;
 
-		if (order != null && !order.equals("")) {
-			selectSQL += " ORDER BY " + order;
-		}
+	    if (order != null && !order.equals("")) {
+	        // Verifica se l'ordine specificato è valido
+	        if (isValidOrder(order)) {
+	            selectSQL += " ORDER BY " + order;
+	        } else {
+	            // Se l'ordine non è valido, gestisci l'errore o utilizza un ordine predefinito
+	            throw new SQLException("Invalid order specified.");
+	        }
+	    }
 
-		try {
-			connection = ds.getConnection();
-			preparedStatement = connection.prepareStatement(selectSQL);
+	    try {
+	        connection = ds.getConnection();
+	        preparedStatement = connection.prepareStatement(selectSQL);
+	        rs = preparedStatement.executeQuery();
 
-			ResultSet rs = preparedStatement.executeQuery();
+	        while (rs.next()) {
+	            ProdottoBean bean = new ProdottoBean();
 
-			while (rs.next()) {
-				ProdottoBean bean = new ProdottoBean();
+	            bean.setIdProdotto(rs.getInt("ID_PRODOTTO"));
+	            bean.setNome(rs.getString("NOME"));
+	            bean.setDescrizione(rs.getString("DESCRIZIONE"));
+	            bean.setPrezzo(rs.getDouble("PREZZO"));
+	            bean.setQuantità(rs.getInt("QUANTITA"));
+	            bean.setPiattaforma(rs.getString("PIATTAFORMA"));
+	            bean.setIva(rs.getString("IVA"));
+	            bean.setDataUscita(rs.getString("DATA_USCITA"));
+	            bean.setInVendita(rs.getBoolean("IN_VENDITA"));
+	            bean.setImmagine(rs.getString("IMMAGINE"));
+	            bean.setGenere(rs.getString("GENERE"));
+	            bean.setDescrizioneDettagliata(rs.getString("DESCRIZIONE_DETTAGLIATA"));
 
-				bean.setIdProdotto(rs.getInt("ID_PRODOTTO"));
-				bean.setNome(rs.getString("NOME"));
-				bean.setDescrizione(rs.getString("DESCRIZIONE"));
-				bean.setPrezzo(rs.getDouble("PREZZO"));
-				bean.setQuantità(rs.getInt("QUANTITA"));
-				bean.setPiattaforma(rs.getString("PIATTAFORMA"));
-				bean.setIva(rs.getString("IVA"));
-				bean.setDataUscita(rs.getString("DATA_USCITA"));
-				bean.setInVendita(rs.getBoolean("IN_VENDITA"));
-				bean.setImmagine(rs.getString("IMMAGINE"));
-				bean.setGenere(rs.getString("GENERE"));
-				bean.setDescrizioneDettagliata(rs.getString("DESCRIZIONE_DETTAGLIATA"));
-
-				products.add(bean);
-			}
-
-		} finally {
-			try {
-				if (preparedStatement != null)
-					preparedStatement.close();
-			} finally {
-				if (connection != null)
-					connection.close();
-			}
-		}
-		return products;
+	            products.add(bean);
+	        }
+	    } finally {
+	        try {
+	            if (rs != null) {
+	                rs.close();
+	            }
+	        } finally {
+	            try {
+	                if (preparedStatement != null) {
+	                    preparedStatement.close();
+	                }
+	            } finally {
+	                if (connection != null) {
+	                    connection.close();
+	                }
+	            }
+	        }
+	    }
+	    return products;
 	}
-	
+
+	private boolean isValidOrder(String order) {
+	    // Definisci gli ordini validi consentiti
+	    String[] validOrders = {"NOME", "PREZZO", "QUANTITA", "PIATTAFORMA", "DATA_USCITA"};
+	    for (String validOrder : validOrders) {
+	        if (validOrder.equalsIgnoreCase(order)) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
 	@Override
 	public synchronized void doUpdateQnt(int id, int qnt) throws SQLException {
 
