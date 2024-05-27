@@ -9,5 +9,9 @@
     <res-type>javax.sql.DataSource</res-type>
     <res-auth>Container</res-auth>
   </resource-ref>
-  
+   <error-page>
+        <!-- pagina di errore-->
+        <error-code>404</error-code>
+        <location>/Error.html</location>
+    </error-page>
 </web-app>
